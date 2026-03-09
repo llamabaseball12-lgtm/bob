@@ -1,0 +1,57 @@
+using UnityEngine;
+
+public class RagdollSpawner : MonoBehaviour
+{
+    [Header("Ragdoll Settings")]
+    public GameObject ragdollPrefab;
+    public float spawnDistance = 5f;
+    public float launchForce = 500f;
+
+    [Header("Input Settings")]
+    public KeyCode spawnKey = KeyCode.Space;
+
+    private Camera mainCam;
+
+    void Start()
+    {
+        mainCam = Camera.main;
+        if (mainCam == null)
+        {
+            Debug.LogError("No Main Camera found. Tag your camera as 'MainCamera'.");
+        }
+
+        if (ragdollPrefab == null)
+        {
+            Debug.LogError("Ragdoll prefab not assigned in the inspector.");
+        }
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(spawnKey))
+        {
+            SpawnAndLaunchRagdoll();
+        }
+    }
+
+    void SpawnAndLaunchRagdoll()
+    {
+        if (ragdollPrefab == null || mainCam == null) return;
+
+        // Position in front of camera
+        Vector3 spawnPos = mainCam.transform.position + mainCam.transform.forward * spawnDistance;
+        Quaternion spawnRot = Quaternion.identity;
+
+        GameObject ragdoll = Instantiate(ragdollPrefab, spawnPos, spawnRot);
+
+        // Try to find a Rigidbody to push (e.g., chest or main body)
+        Rigidbody[] bodies = ragdoll.GetComponentsInChildren<Rigidbody>();
+        if (bodies.Length > 0)
+        {
+            foreach (Rigidbody rb in bodies)
+            {
+                rb.AddForce(mainCam.transform.forward * launchForce);
+            }
+        }
+    }
+}
